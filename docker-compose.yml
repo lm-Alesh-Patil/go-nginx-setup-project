@@ -1,23 +1,37 @@
 version: "3.8"
-# GoAPP2
+
 services:
+  # Go App 1
   goapp1:
     build: ./app
     container_name: goapp1
-    ports:
-      - "8080:8080"
+    expose:
+      - "8001"             # Use expose (for internal network)
     environment:
-      - APP_NAME=GoApp1
-# GoAPP1
+      - INSTANCE_ID=1
+      - PORT=8001
+
+  # Go App 2
   goapp2:
     build: ./app
     container_name: goapp2
-    ports:
-      - "8081:8080"
+    expose:
+      - "8002"
     environment:
-      - APP_NAME=GoApp2
+      - INSTANCE_ID=2
+      - PORT=8002
 
-# Nginx
+  # Go App 3
+  goapp3:
+    build: ./app
+    container_name: goapp3
+    expose:
+      - "8003"
+    environment:
+      - INSTANCE_ID=3
+      - PORT=8003
+
+  # NGINX Load Balancer
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -25,12 +39,12 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./static:/usr/share/nginx/static
     depends_on:
       - goapp1
       - goapp2
+      - goapp3
 
-# Nginx Proxy Manager
+  # Optional: Nginx Proxy Manager (UI)
   npm:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
@@ -42,3 +56,13 @@ services:
     volumes:
       - ./npm/data:/data
       - ./npm/letsencrypt:/etc/letsencrypt
+
+# Optional: For checking request load through autocannon
+  autocannon:
+    image: node:18-alpine
+    container_name: autocannon
+    depends_on:
+      - nginx
+    entrypoint: ["sh", "-c", "npm install -g autocannon && autocannon -c 50 -d 20 http://nginx"]
+    networks:
+      - default

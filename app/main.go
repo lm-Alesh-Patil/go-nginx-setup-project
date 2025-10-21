@@ -1,22 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"os"
+    "fmt"
+    "net/http"
+    "os"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	appName := os.Getenv("APP_NAME")
-	if appName == "" {
-		appName = "Go App"
-	}
-	fmt.Fprintf(w, "Hello from %s!", appName)
-}
-
 func main() {
-	http.HandleFunc("/", handler)
-	port := "8080"
-	fmt.Println("Go app running on port", port)
-	http.ListenAndServe(":"+port, nil)
+    instanceID := os.Getenv("INSTANCE_ID")
+    port := os.Getenv("PORT")
+
+    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintf(w, "HELLO FROM INSTANCE: %s ON PORT %s\n", instanceID, port)
+    })
+
+    fmt.Println("INSTANCE ",instanceID, "running on port", port)
+    http.ListenAndServe(":"+port, nil)
 }
