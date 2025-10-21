@@ -9,5 +9,8 @@ RUN go build -o main .
 FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /app/main .
-EXPOSE 8080
-CMD ["./main"]
+# Set default port (can be overridden by environment variable)
+ENV PORT=8080
+EXPOSE $PORT
+# Start app using the PORT from environment
+CMD ["sh", "-c", "./main --port=$PORT"]
